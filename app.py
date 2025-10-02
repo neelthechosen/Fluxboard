@@ -3,9 +3,7 @@ from flask import Flask, render_template, request, jsonify
 import requests
 import praw
 from textblob import TextBlob
-import plotly
 import plotly.graph_objects as go
-import json
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
@@ -95,25 +93,25 @@ class CoinGeckoAPI:
                 'price_change_percentage': '24h,7d,30d'
             }
             
-            # Apply filters
-            if filters:
-                if filters.get('min_market_cap'):
-                    params['market_cap_gte'] = int(filters['min_market_cap'])
-                if filters.get('max_market_cap'):
-                    params['market_cap_lte'] = int(filters['max_market_cap'])
-                if filters.get('min_volume'):
-                    params['volume_gte'] = int(filters['min_volume'])
-                if filters.get('min_percent_change'):
-                    params['price_change_percentage_24h_gte'] = float(filters['min_percent_change'])
-            
             response = requests.get(url, headers=self.headers, params=params)
             coins = response.json()
             
-            # Additional filtering for search
-            if filters and filters.get('search'):
-                search_term = filters['search'].lower()
-                coins = [coin for coin in coins if search_term in coin['name'].lower() or 
-                        search_term in coin['symbol'].lower()]
+            # Apply filters
+            if filters:
+                if filters.get('search'):
+                    search_term = filters['search'].lower()
+                    coins = [coin for coin in coins if search_term in coin['name'].lower() or 
+                            search_term in coin['symbol'].lower()]
+                
+                # Additional filtering can be added here for market cap, volume, etc.
+                if filters.get('min_market_cap'):
+                    coins = [coin for coin in coins if coin.get('market_cap', 0) >= int(filters['min_market_cap'])]
+                if filters.get('max_market_cap'):
+                    coins = [coin for coin in coins if coin.get('market_cap', 0) <= int(filters['max_market_cap'])]
+                if filters.get('min_volume'):
+                    coins = [coin for coin in coins if coin.get('total_volume', 0) >= int(filters['min_volume'])]
+                if filters.get('min_percent_change'):
+                    coins = [coin for coin in coins if coin.get('price_change_percentage_24h', 0) >= float(filters['min_percent_change'])]
             
             return coins
         except Exception as e:
