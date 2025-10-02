@@ -1,1 +1,98 @@
+{% extends "base.html" %}
 
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4"><i class="fas fa-brain"></i> Reddit Sentiment Analysis</h1>
+    </div>
+</div>
+
+<!-- Search Form -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card bg-dark text-white">
+            <div class="card-body">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-8">
+                        <input type="text" class="form-control" name="coin" 
+                               placeholder="Enter coin symbol or name (e.g., BTC, Ethereum, SOL)..."
+                               value="{{ coin_query }}" required>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search"></i> Analyze Sentiment
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if coin_query %}
+<!-- Sentiment Summary -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card bg-success text-white text-center">
+            <div class="card-body">
+                <h3>{{ "%.1f"|format(bullish_pct) }}%</h3>
+                <p class="mb-0">Bullish</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-danger text-white text-center">
+            <div class="card-body">
+                <h3>{{ "%.1f"|format(bearish_pct) }}%</h3>
+                <p class="mb-0">Bearish</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-secondary text-white text-center">
+            <div class="card-body">
+                <h3>{{ "%.1f"|format(neutral_pct) }}%</h3>
+                <p class="mb-0">Neutral</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Posts -->
+<div class="row">
+    <div class="col-12">
+        <div class="card bg-dark text-white">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-reddit"></i> Latest Posts about {{ coin_query|upper }}
+                    <small class="text-muted">({{ total_posts }} posts analyzed)</small>
+                </h5>
+            </div>
+            <div class="card-body">
+                {% for post in posts %}
+                <div class="post-item mb-3 p-3 rounded {% if post.sentiment == 'positive' %}bg-success{% elif post.sentiment == 'negative' %}bg-danger{% else %}bg-secondary{% endif %}">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">
+                                <a href="{{ post.url }}" class="text-white" target="_blank">
+                                    {{ post.title }}
+                                </a>
+                            </h6>
+                            <small class="text-light">
+                                r/{{ post.subreddit }} • 
+                                {{ post.upvotes }} upvotes • 
+                                {{ post.timestamp.strftime('%Y-%m-%d %H:%M') }}
+                            </small>
+                        </div>
+                        <span class="badge {% if post.sentiment == 'positive' %}bg-light text-success{% elif post.sentiment == 'negative' %}bg-light text-danger{% else %}bg-light text-dark{% endif %} ms-2">
+                            {{ post.sentiment|title }}
+                        </span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
