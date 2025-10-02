@@ -6,7 +6,6 @@ from textblob import TextBlob
 import plotly
 import plotly.graph_objects as go
 import json
-import pandas as pd
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
@@ -21,9 +20,9 @@ REDDIT_SECRET = os.getenv('REDDIT_SECRET', 'oEQGXpNxjQ7WIOwBz1vv9rVMTKNFeQ')
 # CoinGecko API base URL
 COINGECKO_BASE_URL = "https://api.coingecko.com/api/v3"
 
-# Reddit API setup
+# Reddit API setup - Using environment variables for security
 reddit = praw.Reddit(
-    client_id="YOUR_CLIENT_ID",  # You'll need to create a Reddit app
+    client_id=os.getenv('REDDIT_CLIENT_ID', 'your_client_id_here'),
     client_secret=REDDIT_SECRET,
     user_agent="crypto_screener_v1"
 )
@@ -73,7 +72,7 @@ class CoinGeckoAPI:
             coins = response.json()
             
             # Sort by price change percentage
-            sorted_coins = sorted(coins, key=lambda x: x.get('price_change_percentage_24h', 0), reverse=True)
+            sorted_coins = sorted(coins, key=lambda x: x.get('price_change_percentage_24h', 0) or 0, reverse=True)
             
             gainers = sorted_coins[:10]
             losers = sorted_coins[-10:]
@@ -158,6 +157,9 @@ class SentimentAnalyzer:
     
     def analyze_sentiment(self, text):
         """Analyze sentiment using both TextBlob and keyword analysis"""
+        if not text:
+            return 'neutral'
+            
         text_lower = text.lower()
         
         # Keyword-based analysis
@@ -165,8 +167,11 @@ class SentimentAnalyzer:
         negative_count = sum(1 for word in self.negative_keywords if word in text_lower)
         
         # TextBlob analysis
-        blob = TextBlob(text)
-        polarity = blob.sentiment.polarity
+        try:
+            blob = TextBlob(text)
+            polarity = blob.sentiment.polarity
+        except:
+            polarity = 0
         
         # Combine both approaches
         if positive_count > negative_count:
@@ -229,7 +234,7 @@ def sentiment():
             try:
                 subreddit = reddit.subreddit(subreddit_name)
                 
-                for post in subreddit.search(coin_query, limit=5, time_filter='week'):
+                for post in subreddit.search(coin_query, limit=3, time_filter='week'):
                     sentiment_result = sentiment_analyzer.analyze_sentiment(post.title)
                     sentiment_stats[sentiment_result] += 1
                     
