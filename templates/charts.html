@@ -1,1 +1,52 @@
+{% extends "base.html" %}
 
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4"><i class="fas fa-chart-line"></i> Price Charts</h1>
+    </div>
+</div>
+
+<!-- Controls -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card bg-dark text-white">
+            <div class="card-body">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-6">
+                        <select class="form-select" name="coin">
+                            <option value="bitcoin" {% if selected_coin == 'bitcoin' %}selected{% endif %}>Bitcoin (BTC)</option>
+                            <option value="ethereum" {% if selected_coin == 'ethereum' %}selected{% endif %}>Ethereum (ETH)</option>
+                            <option value="solana" {% if selected_coin == 'solana' %}selected{% endif %}>Solana (SOL)</option>
+                            <option value="cardano" {% if selected_coin == 'cardano' %}selected{% endif %}>Cardano (ADA)</option>
+                            <option value="dogecoin" {% if selected_coin == 'dogecoin' %}selected{% endif %}>Dogecoin (DOGE)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <select class="form-select" name="timeframe">
+                            <option value="1" {% if selected_timeframe == '1' %}selected{% endif %}>24 Hours</option>
+                            <option value="7" {% if selected_timeframe == '7' %}selected{% endif %}>7 Days</option>
+                            <option value="30" {% if selected_timeframe == '30' %}selected{% endif %}>30 Days</option>
+                            <option value="90" {% if selected_timeframe == '90' %}selected{% endif %}>90 Days</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">Update Chart</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart -->
+<div class="row">
+    <div class="col-12">
+        <div class="card bg-dark text-white">
+            <div class="card-body">
+                {{ chart_html|safe }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
